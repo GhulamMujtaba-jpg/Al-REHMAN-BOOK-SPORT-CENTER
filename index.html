@@ -5,172 +5,94 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-    font-family: Arial;
-    margin:0;
-    background:#f2f2f2;
-}
-header{
-    background:black;
-    color:white;
-    padding:15px;
-    text-align:center;
-}
-.search-box{
-    text-align:center;
-    margin:20px;
-}
-.search-box input{
-    padding:10px;
-    width:60%;
-}
-.container{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-}
+body{font-family:Arial;margin:0;background:#f2f2f2;}
+header{background:black;color:white;padding:15px;text-align:center;}
+.container{display:flex;flex-wrap:wrap;justify-content:center;}
 .product{
-    background:white;
-    width:260px;
-    margin:15px;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:0 0 10px #ccc;
-    text-align:center;
+background:white;width:250px;margin:15px;padding:15px;
+border-radius:10px;box-shadow:0 0 10px #ccc;text-align:center;
 }
-.product img{
-    width:100%;
-    height:220px;
-    object-fit:cover;
-}
-.price{
-    color:green;
-    font-size:18px;
-    font-weight:bold;
-}
-button{
-    padding:8px 12px;
-    background:green;
-    color:white;
-    border:none;
-    cursor:pointer;
-    margin-top:8px;
-}
-button:hover{
-    background:darkgreen;
-}
-.cart{
-    background:white;
-    margin:20px;
-    padding:20px;
-    border-radius:10px;
-}
-input{
-    padding:8px;
-    margin:5px 0;
-    width:95%;
-}
+.product img{width:100%;height:200px;object-fit:cover;}
+button{padding:8px 12px;background:green;color:white;border:none;cursor:pointer;}
+button:hover{background:darkgreen;}
+.cart{background:white;margin:20px;padding:20px;border-radius:10px;}
+input{padding:8px;margin:5px 0;width:95%;}
+.add-product{background:white;margin:20px;padding:20px;border-radius:10px;}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>GM Official Online Store</h1>
+<h1>GM Official Store</h1>
 </header>
 
-<div class="search-box">
-<input type="text" id="search" placeholder="Search product..." onkeyup="searchProduct()">
+<!-- ADD PRODUCT FORM -->
+<div class="add-product">
+<h2>Add New Product</h2>
+<input type="text" id="pname" placeholder="Product Name">
+<input type="number" id="pprice" placeholder="Price">
+<input type="text" id="pimage" placeholder="Image URL (paste link)">
+<button onclick="createProduct()">Add Product</button>
 </div>
 
-<div class="container" id="products">
-
-<!-- PRODUCT 1 -->
-<div class="product">
-<img src="product1.jpg">
-<h3>Product 1</h3>
-<p class="price">2000 PKR</p>
-Quantity:
-<input type="number" value="1" min="1" id="q1">
-<button onclick="addToCart('Product 1',2000,'q1')">Add to Cart</button>
-</div>
-
-<!-- PRODUCT 2 -->
-<div class="product">
-<img src="product2.jpg">
-<h3>Product 2</h3>
-<p class="price">3500 PKR</p>
-Quantity:
-<input type="number" value="1" min="1" id="q2">
-<button onclick="addToCart('Product 2',3500,'q2')">Add to Cart</button>
-</div>
-
-</div>
+<div class="container" id="products"></div>
 
 <div class="cart">
-<h2>Your Cart</h2>
+<h2>Cart</h2>
 <ul id="cartItems"></ul>
 <h3>Total: <span id="total">0</span> PKR</h3>
-
-<h3>Customer Details</h3>
-<input type="text" id="name" placeholder="Your Name">
-<input type="text" id="phone" placeholder="Phone Number">
-<input type="text" id="address" placeholder="Address">
-
-<button onclick="orderNow()">Order on WhatsApp</button>
 </div>
 
 <script>
 let total = 0;
-let cartText = "";
 
-function addToCart(name, price, qtyId){
-    let qty = document.getElementById(qtyId).value;
-    let amount = price * qty;
+function createProduct(){
+let name = document.getElementById("pname").value;
+let price = document.getElementById("pprice").value;
+let image = document.getElementById("pimage").value;
 
-    let li = document.createElement("li");
-    li.innerHTML = name + " x " + qty + " = " + amount +
-    " PKR <button onclick='removeItem(this,"+amount+")'>X</button>";
-    document.getElementById("cartItems").appendChild(li);
+if(name=="" || price=="" || image==""){
+alert("Fill all fields");
+return;
+}
 
-    total += amount;
-    document.getElementById("total").innerText = total;
+let productDiv = document.createElement("div");
+productDiv.className="product";
 
-    cartText += name + " x " + qty + " = " + amount + " PKR%0A";
+productDiv.innerHTML = `
+<img src="${image}">
+<h3>${name}</h3>
+<p>${price} PKR</p>
+Quantity:
+<input type="number" value="1" min="1" id="q${Date.now()}">
+<button onclick="addToCart('${name}',${price}, this.previousElementSibling)">Add to Cart</button>
+`;
+
+document.getElementById("products").appendChild(productDiv);
+
+document.getElementById("pname").value="";
+document.getElementById("pprice").value="";
+document.getElementById("pimage").value="";
+}
+
+function addToCart(name, price, qtyInput){
+let qty = qtyInput.value;
+let amount = price * qty;
+
+let li = document.createElement("li");
+li.innerHTML = name + " x " + qty + " = " + amount +
+" PKR <button onclick='removeItem(this,"+amount+")'>X</button>";
+document.getElementById("cartItems").appendChild(li);
+
+total += amount;
+document.getElementById("total").innerText = total;
 }
 
 function removeItem(btn, amount){
-    btn.parentElement.remove();
-    total -= amount;
-    document.getElementById("total").innerText = total;
-}
-
-function searchProduct(){
-    let input = document.getElementById("search").value.toLowerCase();
-    let products = document.getElementsByClassName("product");
-    for(let i=0;i<products.length;i++){
-        let name = products[i].getElementsByTagName("h3")[0].innerText.toLowerCase();
-        if(name.includes(input)){
-            products[i].style.display="block";
-        } else {
-            products[i].style.display="none";
-        }
-    }
-}
-
-function orderNow(){
-    let name = document.getElementById("name").value;
-    let phone = document.getElementById("phone").value;
-    let address = document.getElementById("address").value;
-
-    let message = "New Order From GM Official Store%0A%0A";
-    message += cartText;
-    message += "%0ATotal: " + total + " PKR%0A%0A";
-    message += "Customer Name: " + name + "%0A";
-    message += "Phone: " + phone + "%0A";
-    message += "Address: " + address;
-
-    window.open("https://wa.me/923000000000?text=" + message);
+btn.parentElement.remove();
+total -= amount;
+document.getElementById("total").innerText = total;
 }
 </script>
 
