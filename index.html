@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Online Store</title>
+<title>My Online Store</title>
 <style>
   * {margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif;}
   body {background:#f0f0f0;}
   header {background:#222; color:white; padding:20px; text-align:center;}
   header h1 {font-size:2em;}
   
-  /* Products Grid */
   .products {display:flex; flex-wrap:wrap; justify-content:center; margin:30px;}
   .product-card {
       background:white; border-radius:12px; box-shadow:0 6px 15px rgba(0,0,0,0.15);
@@ -30,7 +29,6 @@
   .buy-now {background:#0b8043;}
   .btn:hover {opacity:0.9;}
   
-  /* Cart Popup */
   #cart-modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;}
   #cart-content {background:white; padding:20px; border-radius:12px; width:90%; max-width:500px; max-height:80%; overflow-y:auto;}
   #cart-content h2 {margin-bottom:15px;}
@@ -47,11 +45,11 @@
 <body>
 
 <header>
-  <h1>Mini Online Store</h1>
+  <h1>My Online Store</h1>
 </header>
 
 <section class="products" id="product-list">
-  <!-- Products will be injected here -->
+  <!-- Products will be loaded dynamically -->
 </section>
 
 <!-- Cart Modal -->
@@ -66,7 +64,7 @@
 </div>
 
 <script>
-  // Products Data
+  // 1️⃣ Define products here
   const products = [
     {id:1, name:"Professional Calculator", price:29.99, oldPrice:49.99, discount:40, img:"https://erikayew.com/wp-content/uploads/2024/07/BMSM-1.jpg"},
     {id:2, name:"Scientific Calculator", price:39.99, oldPrice:59.99, discount:33, img:"https://erikayew.com/wp-content/uploads/2024/07/BMSM-1.jpg"},
@@ -75,7 +73,7 @@
 
   let cart = [];
 
-  // Render Products
+  // 2️⃣ Render products
   const productList = document.getElementById("product-list");
   products.forEach(p=>{
     const card = document.createElement("div");
@@ -84,7 +82,7 @@
       <img src="${p.img}" alt="${p.name}">
       <div class="product-info">
         <h2>${p.name}</h2>
-        <p>High quality product for home & office use</p>
+        <p>High quality product for home & office</p>
         <div class="price">$${p.price} <span class="old-price">$${p.oldPrice}</span> <span class="discount">${p.discount}% OFF</span></div>
         <div>
           <button class="btn add-cart" onclick="addToCart(${p.id})">Add to Cart</button>
@@ -95,7 +93,7 @@
     productList.appendChild(card);
   });
 
-  // Cart Functions
+  // 3️⃣ Cart functions
   function addToCart(id){
     const product = products.find(p=>p.id===id);
     cart.push(product);
@@ -107,7 +105,7 @@
     const cartItems = document.getElementById("cart-items");
     cartItems.innerHTML = "";
     let total = 0;
-    cart.forEach((item, index)=>{
+    cart.forEach((item,index)=>{
       total += item.price;
       const div = document.createElement("div");
       div.className = "cart-item";
@@ -131,12 +129,13 @@
   }
 
   function checkout(){
-    if(cart.length === 0){ alert("Cart is empty"); return; }
+    if(cart.length===0){alert("Cart is empty"); return;}
     let message = "I want to buy:%0A";
     cart.forEach(item=>{message+=`- ${item.name} ($${item.price.toFixed(2)})%0A`});
     const url = `https://wa.me/1234567890?text=${message}`;
     window.open(url,'_blank');
   }
+
 </script>
 
 </body>
