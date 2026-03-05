@@ -2,30 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GM Online Store</title>
+<title>GM Online Store - Professional</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial;margin:0;padding:0;background:#f0f8ff;color:#333;transition:.3s;}
-header{background:#1e90ff;color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:100;}
-header h1{margin:0;font-size:24px;}
-header button{margin:5px;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;background:#ff4500;color:white;}
+body{font-family:Arial;margin:0;padding:0;background:linear-gradient(120deg,#f6d365,#fda085);color:#333;transition:.3s;}
+header{background:#1e3c72;color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:100;}
+header h1{margin:0;font-size:26px;}
+header button{margin:5px;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;background:#ff6f61;color:white;}
 .container{padding:15px;}
 input,select,button{padding:6px;margin:4px;border-radius:5px;}
 .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;margin-top:15px;}
-.product-card{background:white;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);text-align:center;}
+.product-card{background:white;padding:10px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.2);text-align:center;transition:.3s;}
+.product-card:hover{transform:scale(1.02);}
 .product-card img{width:100%;height:150px;object-fit:cover;border-radius:5px;margin-bottom:5px;}
-.product-card button{margin-top:5px;background:#27ae60;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;}
-input[type="file"]{padding:3px;}
-select{padding:6px;}
-h2{color:#1e90ff;}
-.dark{background:#333;color:white;}
-.dark .product-card{background:#555;color:white;}
+.product-card button{margin-top:5px;background:#27ae60;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;transition:.3s;}
+.product-card button:hover{opacity:.8;}
+.category-buttons{margin-top:10px;}
+.category-buttons button{margin:3px;padding:6px 12px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;transition:.3s;}
+.category-buttons button:hover{opacity:.8;}
+.admin-dashboard{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px;}
+.admin-dashboard div{flex:1;background:#ff7f50;color:white;padding:10px;border-radius:10px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.dark{background:#2c3e50;color:white;}
+.dark .product-card{background:#444;color:white;}
+.dark input, .dark select{background:#666;color:white;}
+h2{color:#1e3c72;}
 </style>
 </head>
 <body>
 
 <header>
-<h1>GM Online Store</h1>
+<h1>GM Online Store - Professional</h1>
 <button onclick="toggleDarkMode()">Dark/Light</button>
 </header>
 
@@ -47,20 +53,40 @@ h2{color:#1e90ff;}
 <input type="file" id="pimages" accept="image/*" multiple>
 <button onclick="addProduct()">Add Product</button>
 
+<h2>Filter by Category</h2>
+<div class="category-buttons">
+<button onclick="filterCategory('All')">All</button>
+<button onclick="filterCategory('Electronics')">Electronics</button>
+<button onclick="filterCategory('Fashion')">Fashion</button>
+<button onclick="filterCategory('Books')">Books</button>
+<button onclick="filterCategory('Other')">Other</button>
+</div>
+
 <h2>Search Product</h2>
 <input id="searchBox" placeholder="Search..." onkeyup="searchProduct()">
 
 <h2>Products</h2>
 <div class="products-grid" id="productList"></div>
 
+<h2>Admin Dashboard</h2>
+<div class="admin-dashboard">
+<div>Total Products<br><span id="totalProducts">0</span></div>
+<div>Electronics<br><span id="electronicsCount">0</span></div>
+<div>Fashion<br><span id="fashionCount">0</span></div>
+<div>Books<br><span id="booksCount">0</span></div>
+<div>Other<br><span id="otherCount">0</span></div>
+</div>
+
 </div>
 
 <script>
 let products = JSON.parse(localStorage.getItem("products")) || [];
+let currentCategory = 'All';
 
 // Save products
 function saveData(){
 localStorage.setItem("products", JSON.stringify(products));
+updateDashboard();
 }
 
 // Toggle dark mode
@@ -78,8 +104,8 @@ let whatsapp = document.getElementById("whatsapp").value.trim();
 let category = document.getElementById("category").value;
 let imageInput = document.getElementById("pimages");
 
-if(!name || !price || !whatsapp || !imageInput.files.length){
-alert("Fill all fields and upload at least 1 image");
+if(!name || !price || !whatsapp || !imageInput.files.length || !category){
+alert("Fill all fields and select category, upload at least 1 image");
 return;
 }
 
@@ -88,7 +114,6 @@ alert("You can upload maximum 5 images per product");
 return;
 }
 
-// Read images asynchronously
 let files = Array.from(imageInput.files);
 let images = [];
 let loaded = 0;
@@ -121,7 +146,12 @@ document.getElementById("pimages").value="";
 function renderProducts(){
 let list = document.getElementById("productList");
 list.innerHTML="";
-products.forEach((p,i)=>{
+let filtered = products;
+if(currentCategory !== 'All'){
+filtered = products.filter(p=>p.category === currentCategory);
+}
+
+filtered.forEach((p,i)=>{
 let card = document.createElement("div");
 card.className="product-card";
 let imagesHTML = p.images.map(img=>`<img src="${img}">`).join("");
@@ -139,6 +169,13 @@ Stock: ${p.stock}<br>
 `;
 list.appendChild(card);
 });
+updateDashboard();
+}
+
+// Filter by Category
+function filterCategory(cat){
+currentCategory = cat;
+renderProducts();
 }
 
 // Search
@@ -182,6 +219,15 @@ products.splice(i,1);
 saveData();
 renderProducts();
 }
+}
+
+// Update Admin Dashboard
+function updateDashboard(){
+document.getElementById("totalProducts").innerText = products.length;
+document.getElementById("electronicsCount").innerText = products.filter(p=>p.category==='Electronics').length;
+document.getElementById("fashionCount").innerText = products.filter(p=>p.category==='Fashion').length;
+document.getElementById("booksCount").innerText = products.filter(p=>p.category==='Books').length;
+document.getElementById("otherCount").innerText = products.filter(p=>p.category==='Other').length;
 }
 
 // Initial render
