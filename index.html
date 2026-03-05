@@ -6,179 +6,178 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 body{
 font-family:Arial;
 margin:0;
-background:#f4f6f9;
+transition:.3s;
+background: linear-gradient(135deg,#36d1dc,#5b86e5,#ff9966,#ff5e62);
+background-size:400% 400%;
+animation:bgMove 15s infinite alternate;
+color:black;
 }
+
+@keyframes bgMove{
+0%{background-position:left}
+100%{background-position:right}
+}
+
+.dark{background:#1e1e1e;color:white}
 
 header{
 background:#2c3e50;
 color:white;
 padding:15px;
 text-align:center;
-font-size:22px;
+position:sticky;
+top:0;
+z-index:100;
 }
 
-.container{
-padding:20px;
-}
-
-.dashboard{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-bottom:20px;
-}
-
-.box{
-background:white;
-padding:15px;
-flex:1;
-min-width:150px;
-border-radius:8px;
-box-shadow:0 2px 5px rgba(0,0,0,0.2);
-text-align:center;
-}
-
-input{
-padding:10px;
-margin:5px;
-}
-
-button{
-padding:10px 15px;
-margin:5px;
+header button{
+margin:3px;
+padding:6px 10px;
 cursor:pointer;
 border:none;
-background:#3498db;
-color:white;
 border-radius:5px;
 }
 
-button:hover{
-background:#2980b9;
-}
+.container{padding:15px;}
+
+input,button{padding:6px;margin:4px;border-radius:5px;}
 
 .card{
 background:white;
-padding:15px;
+padding:12px;
 margin:10px 0;
-border-radius:8px;
-box-shadow:0 2px 5px rgba(0,0,0,0.2);
+border-radius:10px;
+box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
+.dark .card{background:#2c2c2c;color:white}
 
-th,td{
-padding:10px;
-border:1px solid #ddd;
-text-align:center;
-}
+.product-buttons{display:flex;gap:10px;align-items:center;}
+.product-buttons button{width:35px;height:35px;font-size:18px;}
 
-.records{
-margin-top:30px;
-}
+.dashboard{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px;}
+.dashboard div{flex:1;background:#3498db;color:white;padding:10px;border-radius:10px;text-align:center;}
 
+table{background:white;width:100%;border-collapse:collapse}
+.dark table{background:#2c2c2c;color:white}
+
+th,td{text-align:center;padding:6px;border:1px solid #ccc}
+
+#dailyRecords table{width:100%;border-collapse:collapse;margin-top:10px;}
+#dailyRecords th,#dailyRecords td{border:1px solid #999;padding:5px;text-align:center;}
+#dailyRecords th{background:#2c3e50;color:white;}
 </style>
 </head>
 
 <body>
 
 <header>
-GM Auto Sales System
+<h2>GM Auto Sales System</h2>
+<button onclick="toggleMode()">Dark/Light</button>
+<button onclick="clearSales()">Clear Sales</button>
+<button onclick="takeScreenshot()">Screenshot</button>
+<button onclick="printPage()">Print</button>
+<button onclick="nextDay()">Next Day</button>
 </header>
 
 <div class="container">
 
-<div class="dashboard">
-
-<div class="box">
-<h3>Today Sale</h3>
-<h2 id="todaySale">0</h2>
-</div>
-
-<div class="box">
-<h3>Overall Sale</h3>
-<h2 id="overallSale">0</h2>
-</div>
-
-<div class="box">
-<h3>Overall Profit</h3>
-<h2 id="overallProfit">0</h2>
-</div>
-
-</div>
-
-<button onclick="clearDashboard()">Dashboard Clear</button>
-<button onclick="nextDay()">Next Day</button>
-
-<hr>
-
 <h3>Add Product</h3>
+<input id="pname" placeholder="Product Name">
+<input type="number" id="cost" placeholder="Cost Price">
+<input type="number" id="sale" placeholder="Sale Price">
+<input type="number" id="stock" placeholder="Stock (optional)">
+<button onclick="addProduct()">Add</button>
 
-<input id="name" placeholder="Product Name">
-<input id="costp" type="number" placeholder="Cost Price">
-<input id="salep" type="number" placeholder="Sale Price">
-<input id="stock" type="number" placeholder="Stock">
-
-<button onclick="addProduct()">Add Product</button>
-
-<br><br>
-
+<h3>Products</h3>
 <button onclick="renderProducts()">Card View</button>
 <button onclick="showTableView()">Table View</button>
+<button onclick="exportCSV()">Export Excel</button>
+<br>
+<input id="searchBox" placeholder="Search Product..." onkeyup="searchProduct()">
 
 <div id="productList"></div>
 
-<div class="records">
+<h3>Dashboard</h3>
 
-<h3>Daily Records</h3>
+<div class="dashboard">
 
+<div>
+Today Sale<br>
+<span id="todaySale">0</span>
+</div>
+
+<div>
+Overall Sale<br>
+<span id="overallSale">0</span>
+</div>
+
+<div>
+Overall Profit<br>
+<span id="overallProfit">0</span>
+</div>
+
+<div>
+Current Day<br>
+<span id="currentDay">1</span>
+<br>
+<button onclick="clearCurrentDay()">Dashboard Clear</button>
+</div>
+
+</div>
+
+<h3>Daily Sales Records</h3>
 <div id="dailyRecords"></div>
 
 </div>
 
-</div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
 
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let sales=JSON.parse(localStorage.getItem("sales"))||[];
-let currentDay=localStorage.getItem("day")||1;
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let sales = JSON.parse(localStorage.getItem("sales")) || [];
+let currentDay = parseInt(localStorage.getItem("currentDay")) || 1;
+let currentView="card";
+
+document.getElementById("currentDay").innerText = currentDay;
 
 function save(){
 localStorage.setItem("products",JSON.stringify(products));
 localStorage.setItem("sales",JSON.stringify(sales));
-localStorage.setItem("day",currentDay);
+localStorage.setItem("currentDay",currentDay);
 }
 
 function addProduct(){
 
-let name=document.getElementById("name").value;
-let costp=parseFloat(document.getElementById("costp").value);
-let salep=parseFloat(document.getElementById("salep").value);
-let stock=parseInt(document.getElementById("stock").value);
+let name=pname.value;
+let costp=parseFloat(cost.value);
+let salep=parseFloat(sale.value);
+let stockp=parseInt(stock.value)||0;
 
-products.push({
-name,
-costp,
-salep,
-stock,
-sold:0
-});
+if(!name||!costp||!salep)return alert("Fill all fields");
+
+products.push({name,costp,salep,stock:stockp,sold:0});
 
 save();
-renderProducts();
+refreshView();
 
 }
 
+function refreshView(){
+if(currentView==="table") showTableView();
+else renderProducts();
+
+renderDailyRecords();
+document.getElementById("currentDay").innerText=currentDay;
+}
+
 function renderProducts(){
+
+currentView="card";
 
 let list=document.getElementById("productList");
 list.innerHTML="";
@@ -186,18 +185,17 @@ list.innerHTML="";
 products.forEach((p,index)=>{
 
 let div=document.createElement("div");
-
 div.className="card";
 
 div.innerHTML=`
 <b>${p.name}</b><br>
-Cost: ${p.costp}<br>
-Sale: ${p.salep}<br>
-Sold: ${p.sold}<br>
-Stock: ${p.stock}<br><br>
+Cost: ${p.costp} | Sale: ${p.salep}<br>
+Sold: ${p.sold} | Stock: ${p.stock}<br>
 
+<div class="product-buttons">
 <button onclick="increase(${index})">+</button>
 <button onclick="decrease(${index})">-</button>
+</div>
 `;
 
 list.appendChild(div);
@@ -210,22 +208,26 @@ updateDashboard();
 
 function showTableView(){
 
-let list=document.getElementById("productList");
+currentView="table";
 
+let list=document.getElementById("productList");
 list.innerHTML="";
+
+if(products.length===0){
+list.innerHTML="<div class='card'>No Products</div>";
+return;
+}
 
 let table=document.createElement("table");
 
-let header=`
-<tr>
+let header=`<tr style="background:#2c3e50;color:white;">
 <th>Name</th>
 <th>Cost</th>
 <th>Sale</th>
 <th>Sold</th>
 <th>Stock</th>
 <th>Action</th>
-</tr>
-`;
+</tr>`;
 
 let rows="";
 
@@ -248,8 +250,9 @@ rows+=`
 });
 
 table.innerHTML=header+rows;
-
 list.appendChild(table);
+
+updateDashboard();
 
 }
 
@@ -257,24 +260,24 @@ function increase(i){
 
 let p=products[i];
 
-if(p.stock>0){
+if(p.stock>0 && p.sold>=p.stock){
+alert("Out of stock!");
+return;
+}
 
-p.stock--;
 p.sold++;
 
-let profit=p.salep-p.costp;
+let today=new Date().toISOString().split("T")[0];
 
 sales.push({
-day:currentDay,
+date:today,
 sale:p.salep,
-profit
+profit:(p.salep-p.costp),
+day:currentDay
 });
 
 save();
-renderProducts();
-renderDailyRecords();
-
-}
+refreshView();
 
 }
 
@@ -284,11 +287,19 @@ let p=products[i];
 
 if(p.sold>0){
 
-p.stock++;
 p.sold--;
 
+for(let j=sales.length-1;j>=0;j--){
+
+if(sales[j].sale===p.salep && sales[j].day===currentDay){
+sales.splice(j,1);
+break;
+}
+
+}
+
 save();
-renderProducts();
+refreshView();
 
 }
 
@@ -296,66 +307,29 @@ renderProducts();
 
 function updateDashboard(){
 
-let today=0;
-let overall=0;
-let profit=0;
+let todaySaleValue=0;
+let overallSale=0;
+let overallProfit=0;
 
 sales.forEach(s=>{
 
-overall+=s.sale;
-profit+=s.profit;
+overallSale+=s.sale;
+overallProfit+=s.profit;
 
-if(s.day==currentDay){
-today+=s.sale;
+if(s.day===currentDay){
+todaySaleValue+=s.sale;
 }
 
 });
 
-document.getElementById("todaySale").innerText=today;
-document.getElementById("overallSale").innerText=overall;
-document.getElementById("overallProfit").innerText=profit;
+document.getElementById("todaySale").innerText=todaySaleValue;
+document.getElementById("overallSale").innerText=overallSale;
+document.getElementById("overallProfit").innerText=overallProfit;
 
 }
 
-function renderDailyRecords(){
-
-let box=document.getElementById("dailyRecords");
-
-box.innerHTML="";
-
-let days=[...new Set(sales.map(s=>s.day))];
-
-days.forEach(day=>{
-
-let total=sales.filter(s=>s.day==day)
-.reduce((a,b)=>a+b.sale,0);
-
-let div=document.createElement("div");
-
-div.className="card";
-
-div.innerHTML=`
-Day ${day} : Sale ${total}
-`;
-
-box.appendChild(div);
-
-});
-
-}
-
-function nextDay(){
-
-currentDay++;
-
-products.forEach(p=>p.sold=0);
-
-save();
-renderProducts();
-
-}
-
-function clearDashboard(){
+/* ONLY CHANGE: Dashboard Clear */
+function clearCurrentDay(){
 
 if(confirm("Clear dashboard values only?")){
 
@@ -363,12 +337,173 @@ document.getElementById("todaySale").innerText=0;
 document.getElementById("overallSale").innerText=0;
 document.getElementById("overallProfit").innerText=0;
 
-}
+products.forEach(p=>p.sold=0);
 
 }
 
-renderProducts();
-renderDailyRecords();
+}
+
+function clearSales(){
+
+if(confirm("Clear all sales?")){
+
+sales=[];
+products.forEach(p=>p.sold=0);
+
+save();
+refreshView();
+
+}
+
+}
+
+function nextDay(){
+
+if(confirm("Start next day?")){
+
+currentDay++;
+
+products.forEach(p=>p.sold=0);
+
+save();
+refreshView();
+
+}
+
+}
+
+function renderDailyRecords(){
+
+let container=document.getElementById("dailyRecords");
+container.innerHTML="";
+
+let days=[...new Set(sales.map(s=>s.day))];
+
+if(days.length===0){
+container.innerHTML="<div class='card'>No sales yet</div>";
+return;
+}
+
+let table=document.createElement("table");
+
+table.innerHTML="<tr><th>Day</th><th>Total Sale</th><th>Total Profit</th><th>Delete</th></tr>";
+
+days.forEach(day=>{
+
+let daySales=sales.filter(s=>s.day===day);
+
+let totalSale=0;
+let totalProfit=0;
+
+daySales.forEach(s=>{
+totalSale+=s.sale;
+totalProfit+=s.profit;
+});
+
+let row=document.createElement("tr");
+
+row.innerHTML=`
+<td>Day ${day}</td>
+<td>${totalSale}</td>
+<td>${totalProfit}</td>
+<td><button onclick="deleteDay(${day})">Delete</button></td>
+`;
+
+table.appendChild(row);
+
+});
+
+container.appendChild(table);
+
+}
+
+function deleteDay(day){
+
+if(confirm("Delete all data of Day "+day+" ?")){
+
+sales=sales.filter(s=>s.day!==day);
+
+save();
+refreshView();
+
+}
+
+}
+
+function toggleMode(){
+document.body.classList.toggle("dark");
+}
+
+function searchProduct(){
+
+let value=document.getElementById("searchBox").value.toLowerCase();
+
+let filtered=products.filter(p=>p.name.toLowerCase().includes(value));
+
+let list=document.getElementById("productList");
+list.innerHTML="";
+
+filtered.forEach(p=>{
+
+let div=document.createElement("div");
+div.className="card";
+
+div.innerHTML=`
+<b>${p.name}</b><br>
+Cost: ${p.costp} | Sale: ${p.salep}<br>
+Sold: ${p.sold} | Stock: ${p.stock}
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+function exportCSV(){
+
+if(products.length===0){
+alert("No Data");
+return;
+}
+
+let csv="Name,Cost,Sale,Sold,Stock,Day\n";
+
+products.forEach(p=>{
+
+sales.filter(s=>s.sale===p.salep).forEach(s=>{
+csv+=`${p.name},${p.costp},${p.salep},${p.sold},${p.stock},${s.day}\n`;
+});
+
+});
+
+let blob=new Blob([csv],{type:"text/csv"});
+
+let link=document.createElement("a");
+link.href=URL.createObjectURL(blob);
+link.download="GM_Auto_Sales_Data.csv";
+link.click();
+
+}
+
+function takeScreenshot(){
+
+html2canvas(document.body).then(canvas=>{
+
+let link=document.createElement("a");
+link.download="GM_Sales_System.png";
+link.href=canvas.toDataURL();
+link.click();
+
+});
+
+}
+
+function printPage(){
+window.print();
+}
+
+refreshView();
 
 </script>
 
