@@ -92,7 +92,7 @@ let filesLoaded = 0;
 for(let i=0;i<imageInput.files.length;i++){
 let reader = new FileReader();
 reader.onload = function(e){
-images.push(e.target.result);
+images[i] = e.target.result; // properly assign index
 filesLoaded++;
 if(filesLoaded === imageInput.files.length){
 products.push({name,price,discount,stock,whatsapp,category,images});
