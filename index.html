@@ -18,6 +18,8 @@ input,select,button{padding:6px;margin:4px;border-radius:5px;}
 input[type="file"]{padding:3px;}
 select{padding:6px;}
 h2{color:#1e90ff;}
+.dark{background:#333;color:white;}
+.dark .product-card{background:#555;color:white;}
 </style>
 </head>
 <body>
@@ -68,11 +70,11 @@ document.body.classList.toggle("dark");
 
 // Add Product
 function addProduct(){
-let name = document.getElementById("pname").value;
+let name = document.getElementById("pname").value.trim();
 let price = parseFloat(document.getElementById("price").value);
 let discount = parseFloat(document.getElementById("discount").value) || 0;
 let stock = parseInt(document.getElementById("stock").value) || 0;
-let whatsapp = document.getElementById("whatsapp").value;
+let whatsapp = document.getElementById("whatsapp").value.trim();
 let category = document.getElementById("category").value;
 let imageInput = document.getElementById("pimages");
 
@@ -92,7 +94,7 @@ let filesLoaded = 0;
 for(let i=0;i<imageInput.files.length;i++){
 let reader = new FileReader();
 reader.onload = function(e){
-images[i] = e.target.result; // properly assign index
+images[i] = e.target.result;
 filesLoaded++;
 if(filesLoaded === imageInput.files.length){
 products.push({name,price,discount,stock,whatsapp,category,images});
@@ -120,10 +122,8 @@ list.innerHTML="";
 products.forEach((p,i)=>{
 let card = document.createElement("div");
 card.className="product-card";
-
 let imagesHTML = p.images.map(img=>`<img src="${img}">`).join("");
 let discountedPrice = (p.price - (p.price*p.discount/100)).toFixed(2);
-
 card.innerHTML = `
 ${imagesHTML}
 <b>${p.name}</b><br>
