@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GM Personal Online Store</title>
+<title>GM Online Store</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial;margin:0;padding:0;background:#f0f8ff;transition:.3s;color:#333;}
+body{font-family:Arial;margin:0;padding:0;background:#f0f8ff;color:#333;transition:.3s;}
 header{background:#1e90ff;color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:100;}
 header h1{margin:0;font-size:24px;}
 header button{margin:5px;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;background:#ff4500;color:white;}
@@ -25,7 +25,7 @@ h2{color:#1e90ff;}
 <body>
 
 <header>
-<h1>GM Personal Online Store</h1>
+<h1>GM Online Store</h1>
 <button onclick="toggleDarkMode()">Dark/Light</button>
 </header>
 
@@ -88,22 +88,24 @@ alert("You can upload maximum 5 images per product");
 return;
 }
 
+// Read images asynchronously
+let files = Array.from(imageInput.files);
 let images = [];
-let filesLoaded = 0;
+let loaded = 0;
 
-for(let i=0;i<imageInput.files.length;i++){
+files.forEach((file,index)=>{
 let reader = new FileReader();
 reader.onload = function(e){
-images[i] = e.target.result;
-filesLoaded++;
-if(filesLoaded === imageInput.files.length){
+images[index] = e.target.result;
+loaded++;
+if(loaded === files.length){
 products.push({name,price,discount,stock,whatsapp,category,images});
 saveData();
 renderProducts();
 }
-}
-reader.readAsDataURL(imageInput.files[i]);
-}
+};
+reader.readAsDataURL(file);
+});
 
 // Clear inputs
 document.getElementById("pname").value="";
@@ -128,8 +130,8 @@ card.innerHTML = `
 ${imagesHTML}
 <b>${p.name}</b><br>
 Category: ${p.category}<br>
-Price: PKR ${p.price} <br>
-Discount: ${p.discount}% <br>
+Price: PKR ${p.price}<br>
+Discount: ${p.discount}%<br>
 Final: PKR ${discountedPrice}<br>
 Stock: ${p.stock}<br>
 <button onclick="orderProduct(${i})">Order via WhatsApp</button>
@@ -154,8 +156,8 @@ card.innerHTML = `
 ${imagesHTML}
 <b>${p.name}</b><br>
 Category: ${p.category}<br>
-Price: PKR ${p.price} <br>
-Discount: ${p.discount}% <br>
+Price: PKR ${p.price}<br>
+Discount: ${p.discount}%<br>
 Final: PKR ${discountedPrice}<br>
 Stock: ${p.stock}<br>
 <button onclick="orderProduct(${i})">Order via WhatsApp</button>
@@ -168,7 +170,7 @@ list.appendChild(card);
 // Order
 function orderProduct(i){
 let p = products[i];
-if(p.stock<=0){alert("Out of stock!"); return;}
+if(p.stock <= 0){ alert("Out of stock!"); return; }
 let discountedPrice = (p.price - (p.price*p.discount/100)).toFixed(2);
 window.open(`https://wa.me/${p.whatsapp}?text=I want to order ${p.name} for PKR ${discountedPrice}`,"_blank");
 }
