@@ -2,176 +2,182 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GM Online Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-    font-family: Arial;
-    margin: 0;
-    padding: 0;
-    background: #f5f5f5;
-}
-header {
-    background: #2c3e50;
-    color: white;
-    padding: 15px;
-    text-align: center;
-}
-header h1 {
-    margin: 0;
-}
-.container {
-    padding: 15px;
-}
-#addProductForm input, #addProductForm button {
-    padding: 8px;
-    margin: 5px 0;
-}
-.products {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 20px;
-}
-.product-card {
-    background: white;
-    padding: 10px;
-    border-radius: 10px;
-    width: 200px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    text-align: center;
-}
-.product-card img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-.price {
-    font-weight: bold;
-    color: green;
-}
-.discount {
-    color: red;
-    font-weight: bold;
-}
-button.orderBtn {
-    background: #25D366;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 5px;
-}
-input[type="file"] {
-    padding: 3px;
-}
+body{font-family:Arial;margin:0;padding:0;background:#f4f4f4;color:#333;transition:.3s;}
+header{background:#2c3e50;color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:100;}
+header h1{margin:0;font-size:24px;}
+header button{margin:5px;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;background:#3498db;color:white;}
+.container{padding:15px;}
+input,select,button{padding:6px;margin:4px;border-radius:5px;}
+.card{background:white;padding:10px;margin:10px 0;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.dashboard{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px;}
+.dashboard div{flex:1;background:#3498db;color:white;padding:10px;border-radius:10px;text-align:center;}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin-top:15px;}
+.product-card{background:white;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);text-align:center;}
+.product-card img{width:100%;height:150px;object-fit:cover;border-radius:5px;}
+.product-card button{margin-top:5px;background:#27ae60;color:white;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;}
+input[type="file"]{padding:3px;}
 </style>
 </head>
 <body>
 
 <header>
 <h1>GM Online Store</h1>
+<button onclick="toggleDarkMode()">Dark/Light</button>
+<button onclick="clearDashboard()">Clear Dashboard</button>
 </header>
 
 <div class="container">
 
-<h2>Add Product (Admin Only)</h2>
-<form id="addProductForm">
-    <input type="text" id="pName" placeholder="Product Name" required><br>
-    <input type="number" id="pPrice" placeholder="Price" required><br>
-    <input type="number" id="pDiscount" placeholder="Discount %" value="0"><br>
-    <input type="text" id="pWhatsApp" placeholder="Your WhatsApp Number" required><br>
-    <input type="file" id="pImage" accept="image/*" required><br>
-    <button type="submit">Add Product</button>
-</form>
+<h2>Add Product</h2>
+<input id="pname" placeholder="Product Name">
+<input type="number" id="price" placeholder="Price">
+<input type="number" id="discount" placeholder="Discount %">
+<input type="number" id="stock" placeholder="Stock">
+<input type="text" id="whatsapp" placeholder="WhatsApp Number">
+<input type="file" id="pimage" accept="image/*">
+<button onclick="addProduct()">Add Product</button>
 
-<hr>
+<h2>Search Product</h2>
+<input id="searchBox" placeholder="Search..." onkeyup="searchProduct()">
 
 <h2>Products</h2>
-<input type="text" id="searchBox" placeholder="Search Products..." onkeyup="searchProducts()">
-<div class="products" id="productList"></div>
+<div class="products-grid" id="productList"></div>
+
+<h2>Dashboard</h2>
+<div class="dashboard">
+<div>Total Sales<br><span id="totalSales">0</span></div>
+<div>Total Profit<br><span id="totalProfit">0</span></div>
+<div>Total Orders<br><span id="totalOrders">0</span></div>
+</div>
 
 </div>
 
 <script>
+// Initialize
 let products = JSON.parse(localStorage.getItem("products")) || [];
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
-function saveProducts() {
-    localStorage.setItem("products", JSON.stringify(products));
+// Save function
+function saveData() {
+localStorage.setItem("products", JSON.stringify(products));
+localStorage.setItem("orders", JSON.stringify(orders));
 }
 
-// ===== Add Product =====
-document.getElementById("addProductForm").addEventListener("submit", function(e){
-    e.preventDefault();
-    let name = document.getElementById("pName").value;
-    let price = parseFloat(document.getElementById("pPrice").value);
-    let discount = parseFloat(document.getElementById("pDiscount").value) || 0;
-    let whatsapp = document.getElementById("pWhatsApp").value;
-    let imgFile = document.getElementById("pImage").files[0];
+// Dark mode toggle
+function toggleDarkMode() {
+document.body.classList.toggle("dark");
+}
 
-    if(!imgFile) return alert("Select image!");
+// Add Product
+function addProduct() {
+let name = document.getElementById("pname").value;
+let price = parseFloat(document.getElementById("price").value);
+let discount = parseFloat(document.getElementById("discount").value) || 0;
+let stock = parseInt(document.getElementById("stock").value) || 0;
+let whatsapp = document.getElementById("whatsapp").value;
+let imageInput = document.getElementById("pimage");
 
-    let reader = new FileReader();
-    reader.onload = function(){
-        let imgData = reader.result;
-        products.push({name, price, discount, whatsapp, imgData});
-        saveProducts();
-        renderProducts();
-        document.getElementById("addProductForm").reset();
-    };
-    reader.readAsDataURL(imgFile);
+if(!name || !price || !whatsapp || !imageInput.files[0]) { alert("Fill all fields"); return; }
+
+let reader = new FileReader();
+reader.onload = function(e) {
+let imgData = e.target.result;
+
+products.push({name, price, discount, stock, whatsapp, image: imgData, sold:0});
+saveData();
+renderProducts();
+}
+
+reader.readAsDataURL(imageInput.files[0]);
+}
+
+// Render Products
+function renderProducts() {
+let list = document.getElementById("productList");
+list.innerHTML = "";
+
+products.forEach((p,i)=>{
+let card = document.createElement("div");
+card.className="product-card";
+let discountedPrice = (p.price - (p.price*p.discount/100)).toFixed(2);
+card.innerHTML = `
+<img src="${p.image}">
+<b>${p.name}</b><br>
+Price: $${p.price} <br>
+Discount: ${p.discount}% <br>
+Final: $${discountedPrice}<br>
+Stock: ${p.stock}<br>
+<button onclick="orderProduct(${i})">Order via WhatsApp</button>
+`;
+list.appendChild(card);
 });
 
-// ===== Render Products =====
-function renderProducts(){
-    let list = document.getElementById("productList");
-    list.innerHTML = "";
-    products.forEach((p,index)=>{
-        let card = document.createElement("div");
-        card.className = "product-card";
-        card.innerHTML = `
-            <img src="${p.imgData}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p class="price">₹${p.price}</p>
-            ${p.discount>0? `<p class="discount">${p.discount}% OFF</p>` : ""}
-            <button class="orderBtn" onclick="orderWhatsApp(${index})">Order via WhatsApp</button>
-        `;
-        list.appendChild(card);
-    });
+updateDashboard();
 }
 
-// ===== Search Products =====
-function searchProducts(){
-    let value = document.getElementById("searchBox").value.toLowerCase();
-    let filtered = products.filter(p=>p.name.toLowerCase().includes(value));
-    let list = document.getElementById("productList");
-    list.innerHTML = "";
-    filtered.forEach((p,index)=>{
-        let card = document.createElement("div");
-        card.className = "product-card";
-        card.innerHTML = `
-            <img src="${p.imgData}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p class="price">₹${p.price}</p>
-            ${p.discount>0? `<p class="discount">${p.discount}% OFF</p>` : ""}
-            <button class="orderBtn" onclick="orderWhatsApp(${index})">Order via WhatsApp</button>
-        `;
-        list.appendChild(card);
-    });
+// Search
+function searchProduct() {
+let value = document.getElementById("searchBox").value.toLowerCase();
+let filtered = products.filter(p=>p.name.toLowerCase().includes(value));
+let list = document.getElementById("productList");
+list.innerHTML="";
+filtered.forEach((p,i)=>{
+let card = document.createElement("div");
+card.className="product-card";
+let discountedPrice = (p.price - (p.price*p.discount/100)).toFixed(2);
+card.innerHTML = `
+<img src="${p.image}">
+<b>${p.name}</b><br>
+Price: $${p.price} <br>
+Discount: ${p.discount}% <br>
+Final: $${discountedPrice}<br>
+Stock: ${p.stock}<br>
+<button onclick="orderProduct(${i})">Order via WhatsApp</button>
+`;
+list.appendChild(card);
+});
 }
 
-// ===== WhatsApp Order =====
-function orderWhatsApp(index){
-    let p = products[index];
-    let msg = `Hello! I want to order "${p.name}" priced ₹${p.price}.`;
-    let url = `https://wa.me/${p.whatsapp}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
-}
-
-// Initial render
+// Order
+function orderProduct(i) {
+let p = products[i];
+if(p.stock<=0){ alert("Out of stock!"); return; }
+p.stock--;
+p.sold++;
+let discountedPrice = (p.price - (p.price*p.discount/100)).toFixed(2);
+orders.push({name:p.name, price: discountedPrice});
+saveData();
+updateDashboard();
+window.open(`https://wa.me/${p.whatsapp}?text=I want to order ${p.name} for $${discountedPrice}`,"_blank");
 renderProducts();
+}
+
+// Dashboard
+function updateDashboard() {
+let totalSales = orders.reduce((a,o)=>a+parseFloat(o.price),0).toFixed(2);
+let totalProfit = orders.reduce((a,o)=>a+parseFloat(o.price)*0.3,0).toFixed(2); // 30% profit assumption
+let totalOrders = orders.length;
+document.getElementById("totalSales").innerText = totalSales;
+document.getElementById("totalProfit").innerText = totalProfit;
+document.getElementById("totalOrders").innerText = totalOrders;
+}
+
+// Clear Dashboard
+function clearDashboard() {
+if(confirm("Clear dashboard stats?")){
+orders = [];
+products.forEach(p=>p.sold=0);
+saveData();
+updateDashboard();
+}
+}
+
+// Initial Render
+renderProducts();
+updateDashboard();
 </script>
 
 </body>
