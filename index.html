@@ -12,10 +12,10 @@ font-family:Arial;
 margin:0;
 background:linear-gradient(135deg,#36d1dc,#5b86e5,#ff9966,#ff5e62);
 background-size:400% 400%;
-animation:bgMove 12s infinite alternate;
+animation:bg 12s infinite alternate;
 }
 
-@keyframes bgMove{
+@keyframes bg{
 0%{background-position:left}
 100%{background-position:right}
 }
@@ -23,8 +23,8 @@ animation:bgMove 12s infinite alternate;
 header{
 background:#2c3e50;
 color:white;
-text-align:center;
 padding:15px;
+text-align:center;
 }
 
 .container{
@@ -55,9 +55,9 @@ margin-top:20px;
 
 .card{
 background:white;
-padding:10px;
 border-radius:10px;
-box-shadow:0 3px 8px rgba(0,0,0,.3);
+padding:10px;
+box-shadow:0 3px 10px rgba(0,0,0,.3);
 }
 
 .card img{
@@ -89,10 +89,6 @@ color:red;
 background:red;
 }
 
-.download{
-background:#3498db;
-}
-
 </style>
 </head>
 
@@ -107,17 +103,11 @@ background:#3498db;
 <h2>Add Product</h2>
 
 <input id="pname" placeholder="Product Name">
-
 <input type="number" id="price" placeholder="Price PKR">
-
 <input type="number" id="discount" placeholder="Discount %">
-
 <input type="number" id="stock" placeholder="Stock">
-
 <input id="whatsapp" placeholder="WhatsApp Number">
-
 <input id="category" placeholder="Category">
-
 <input type="file" id="images" multiple accept="image/*">
 
 <button onclick="addProduct()">Add Product</button>
@@ -138,16 +128,16 @@ localStorage.setItem("products",JSON.stringify(products));
 
 function addProduct(){
 
-let name=document.getElementById("pname").value;
-let price=parseFloat(document.getElementById("price").value);
-let discount=parseFloat(document.getElementById("discount").value)||0;
-let stock=parseInt(document.getElementById("stock").value)||0;
-let whatsapp=document.getElementById("whatsapp").value;
-let category=document.getElementById("category").value;
+let name = document.getElementById("pname").value;
+let price = document.getElementById("price").value;
+let discount = document.getElementById("discount").value || 0;
+let stock = document.getElementById("stock").value || 0;
+let whatsapp = document.getElementById("whatsapp").value;
+let category = document.getElementById("category").value;
 
-let files=document.getElementById("images").files;
+let files = document.getElementById("images").files;
 
-if(!name||!price||!whatsapp||files.length==0){
+if(!name || !price || !whatsapp || files.length==0){
 alert("Fill all fields");
 return;
 }
@@ -158,19 +148,14 @@ return;
 }
 
 let images=[];
-let count=0;
 
 for(let i=0;i<files.length;i++){
 
-let reader=new FileReader();
+let url = URL.createObjectURL(files[i]);
 
-reader.onload=function(e){
+images.push(url);
 
-images.push(e.target.result);
-
-count++;
-
-if(count===files.length){
+}
 
 products.push({
 name:name,
@@ -183,15 +168,8 @@ images:images
 });
 
 save();
+
 renderProducts();
-
-}
-
-}
-
-reader.readAsDataURL(files[i]);
-
-}
 
 }
 
@@ -203,7 +181,7 @@ list.innerHTML="";
 
 products.forEach((p,i)=>{
 
-let final=(p.price-(p.price*p.discount/100)).toFixed(0);
+let final = (p.price - (p.price*p.discount/100)).toFixed(0);
 
 let thumbs="";
 
@@ -233,9 +211,7 @@ card.innerHTML=`
 
 <button onclick="orderProduct(${i})">Order WhatsApp</button>
 
-<button class="download" onclick="downloadImages(${i})">Download Images</button>
-
-<button class="delete" onclick="deleteProduct(${i})">Delete</button>
+<button onclick="deleteProduct(${i})" class="delete">Delete</button>
 
 `;
 
@@ -268,24 +244,6 @@ save();
 renderProducts();
 
 }
-
-}
-
-function downloadImages(i){
-
-let p=products[i];
-
-p.images.forEach((img,index)=>{
-
-let a=document.createElement("a");
-
-a.href=img;
-
-a.download=p.name+"_image"+(index+1)+".png";
-
-a.click();
-
-});
 
 }
 
