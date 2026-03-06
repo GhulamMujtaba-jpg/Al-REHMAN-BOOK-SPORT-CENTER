@@ -128,14 +128,14 @@ localStorage.setItem("products",JSON.stringify(products));
 
 function addProduct(){
 
-let name = document.getElementById("pname").value;
-let price = document.getElementById("price").value;
-let discount = document.getElementById("discount").value || 0;
-let stock = document.getElementById("stock").value || 0;
-let whatsapp = document.getElementById("whatsapp").value;
-let category = document.getElementById("category").value;
+let name=document.getElementById("pname").value;
+let price=Number(document.getElementById("price").value);
+let discount=Number(document.getElementById("discount").value)||0;
+let stock=document.getElementById("stock").value||0;
+let whatsapp=document.getElementById("whatsapp").value;
+let category=document.getElementById("category").value;
 
-let files = document.getElementById("images").files;
+let files=document.getElementById("images").files;
 
 if(!name || !price || !whatsapp || files.length==0){
 alert("Fill all fields");
@@ -148,14 +148,19 @@ return;
 }
 
 let images=[];
+let loaded=0;
 
 for(let i=0;i<files.length;i++){
 
-let url = URL.createObjectURL(files[i]);
+let reader=new FileReader();
 
-images.push(url);
+reader.onload=function(e){
 
-}
+images.push(e.target.result);
+
+loaded++;
+
+if(loaded==files.length){
 
 products.push({
 name:name,
@@ -168,8 +173,28 @@ images:images
 });
 
 save();
-
 renderProducts();
+clearForm();
+
+}
+
+}
+
+reader.readAsDataURL(files[i]);
+
+}
+
+}
+
+function clearForm(){
+
+document.getElementById("pname").value="";
+document.getElementById("price").value="";
+document.getElementById("discount").value="";
+document.getElementById("stock").value="";
+document.getElementById("whatsapp").value="";
+document.getElementById("category").value="";
+document.getElementById("images").value="";
 
 }
 
@@ -181,7 +206,7 @@ list.innerHTML="";
 
 products.forEach((p,i)=>{
 
-let final = (p.price - (p.price*p.discount/100)).toFixed(0);
+let final=(p.price-(p.price*p.discount/100)).toFixed(0);
 
 let thumbs="";
 
